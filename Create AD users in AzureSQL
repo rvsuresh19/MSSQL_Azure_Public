@@ -1,0 +1,20 @@
+CREATE USER [name@domain.com] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [name@domain.com]; 
+
+if it is security group then add the alias name
+
+CREATE USER [Azure-ADGROUPNAME] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [Azure-ADGROUPNAME]
+
+
+https://docs.microsoft.com/en-us/azure/sql-database/sql-database-manage-logins
+
+
+FOR Managed instance
+
+https://docs.microsoft.com/en-us/azure/sql-database/sql-database-managed-instance-aad-security-tutorial
+
+USE master
+GO
+CREATE LOGIN [name@domain.com] FROM EXTERNAL PROVIDER
+GO
