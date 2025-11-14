@@ -1,0 +1,37 @@
+
+
+SELECT name, size/128.0 - CAST(FILEPROPERTY(name, 'SpaceUsed') AS int)/128.0 AS AvailableSpaceInMB
+
+FROM sys.database_files
+
+ 
+
+--Shrink tempdb Log File (.ldf)
+
+DBCC SHRINKFILE(tempdb_log,1)
+
+BACKUP LOG tempdb WITH TRUNCATE_ONLY
+
+DBCC SHRINKFILE(tempdb_log,1)
+
+ 
+
+--Shrink tempdb Data File (.mdf)
+
+DBCC SHRINKFILE(tempdb,1)
+
+BACKUP LOG tempdb WITH TRUNCATE_ONLY
+
+DBCC SHRINKFILE(tempdb,1)
+
+ 
+
+--Check Database File Size after shrink
+
+SELECT name, size/128.0 - CAST(FILEPROPERTY(name, 'SpaceUsed') AS int)/128.0 AS AvailableSpaceInMB
+
+FROM sys.database_files
+
+
+----------------if above didnt help-------------
+http://www.sqlsvrdba.com/shrinking-tempdb/
