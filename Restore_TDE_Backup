@@ -1,0 +1,36 @@
+ref: https://deibymarcos.wordpress.com/2017/11/15/how-to-restore-encrypted-databases-cannot-find-server-certificate-with-thumbprint/ (good)
+
+
+Step 1:
+--Create a new master key in new server where database needs to be restored
+CREATE MASTER KEY ENCRYPTION BY PASSWORD ='IqZd5FKOjKe9YDhyvY1C'
+
+Step2: 
+Identify the certificate names available in the instance, by navigating to the security section of master database certificates under master database
+
+
+Step 3: 
+BAckup the existing certificate from source database with a new filename, private key and password
+USE Master
+go
+BACKUP CERTIFICATE Cert4TDE1
+TO FILE = 'F:\redis\certs\TDE_CERT_FOR_CERT4TDE1.cer'
+WITH PRIVATE KEY(
+FILE = 'F:\redis\certs\TDE_CERT_FOR_CERT4TDE1.pvk',
+ENCRYPTION BY PASSWORD = 'tGYeTlWNbmOLfVUjNWUc1'
+)
+
+Step4: 
+Copy the certificate and private key to the target server.
+
+step 5: 
+Create the new certificate in the target sql instance 
+CREATE CERTIFICATE Cert4TDE
+FROM FILE = 'F:\redis\certs\TDE_CERT_FOR_CERT4TDE_REDISDATA.cer'
+WITH PRIVATE KEY(
+FILE = 'F:\redis\certs\TDE_CERT_FOR_CERT4TDE_REDISDATA.pvk',
+DECRYPTION BY PASSWORD = 'tGYeTlWNbmOLfVUjNWUc1'
+)
+
+Step 6:
+Restore database as usual
