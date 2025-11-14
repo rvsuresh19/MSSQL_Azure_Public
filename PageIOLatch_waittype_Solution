@@ -1,0 +1,6 @@
+
+To reducePageIOLatch waittypes
+    1. Tune index look at missing index sp_Blitzindex @getalldatabases=1
+    2. Tune Queries sp_blitzcache @sortorder='reads'
+    3. Add RAM
+    4. Make Storage Faster
