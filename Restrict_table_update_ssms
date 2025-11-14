@@ -1,0 +1,106 @@
+--Trigger based approach to stop insert,update,delete from SSMS for specific user
+--Create a user specialaccess
+create user specialaccess with password='pass@123'
+
+
+--Create a test table
+Create table Testaccess (id int,name varchar(10),DB varchar(10));
+
+--Insert a record to test table
+insert Testaccess values (1,'abc','ms');
+insert Testaccess values (1,'def','mys');
+
+Grant insert,select,update,delete on testaccess to specialaccess;
+--
+
+
+ALTER PROCEDURE [dbo].[sprestrict] 
+as
+DECLARE @id int
+Declare @seid int=@@SPID;
+select @id=session_id  from sys.dm_exec_sessions where program_name like 'Microsoft SQL Server Management Studio%'
+and login_name='specialaccess';
+print @id;
+print @seid;
+if (@id=@seid)
+RAISERROR (15600,-1,-1,'sleep time');
+Go
+
+
+
+CREATE TRIGGER Trg_TestAccess_insrt  
+ON Testaccess  
+INSTEAD OF INSERT AS
+BEGIN
+	DECLARE @id int
+	Declare @seid int=@@SPID;
+	select @id=session_id  from sys.dm_exec_sessions where program_name like 'Microsoft SQL Server Management Studio%'
+	and login_name='specialaccess';
+	print @id;
+	print @seid;
+	if (@id=@seid)
+	BEGIN
+		RAISERROR (N'This is audit record and you are not allowed to insert or update',16,1)
+		RETURN
+	END
+	INSERT INTO Testaccess (id,name,db)
+	SELECT * from INSERTED
+END
+GO
+--
+
+CREATE TRIGGER Trg_TestAccess_upd  
+ON Testaccess  
+INSTEAD OF UPDATE AS
+BEGIN
+	DECLARE @id int
+	Declare @seid int=@@SPID;
+	select @id=session_id  from sys.dm_exec_sessions where program_name like 'Microsoft SQL Server Management Studio%'
+	and login_name='specialaccess';
+	print @id;
+	print @seid;
+	if (@id=@seid)
+	BEGIN
+		RAISERROR (N'This is audit record and you are not allowed to insert or update',16,1)
+		RETURN
+	END
+	BEGIN
+	if (update(name))
+		BEGIN
+		update t
+		set t.name=i.name
+		from inserted i inner join testaccess t on t.id=i.id;
+		END
+	END
+	BEGIN
+	if (update(db))
+		BEGIN
+		update t
+		set t.db=i.db
+		from inserted i inner join testaccess t on t.id=i.id;
+		END
+	END
+END
+GO
+--
+CREATE TRIGGER Trg_TestAccess_del 
+ON Testaccess  
+INSTEAD OF DELETE AS
+BEGIN
+	DECLARE @id int
+	Declare @seid int=@@SPID;
+	select @id=session_id  from sys.dm_exec_sessions where program_name like 'Microsoft SQL Server Management Studio%'
+	and login_name='specialaccess';
+	print @id;
+	print @seid;
+	if (@id=@seid)
+	BEGIN
+		RAISERROR (N'This is a audit table you are not allowed to delete records',16,1)
+		RETURN
+	END
+	BEGIN
+	DELETE FROM Testaccess
+	where id in (select id from deleted)
+	END
+END
+GO
